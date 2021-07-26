@@ -26,6 +26,9 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import xyz.spaceio.customitem.CustomItem;
+// begin sale event addition ms5984
+import xyz.spaceio.ushop.events.UShopSellEvent;
+// end sale event addition ms5984
 
 
 public class Listeners implements Listener {
@@ -85,6 +88,9 @@ public class Listeners implements Listener {
 					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
 					
 					HashMap<CustomItem, Integer> listOfItems = plugin.getSalableItems(e.getInventory().getContents());
+					// begin sale event addition ms5984
+					plugin.getServer().getPluginManager().callEvent(new UShopSellEvent(p, listOfItems));
+					// end sale event addition ms5984
 					List<String> allLines = new ArrayList<>();
 					allLines.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("receipt.header")));
 					for (Entry<CustomItem, Integer> entry : listOfItems.entrySet()) {

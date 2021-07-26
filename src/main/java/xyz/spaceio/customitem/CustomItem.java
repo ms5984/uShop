@@ -1,6 +1,9 @@
 package xyz.spaceio.customitem;
 
 import java.lang.reflect.Field;
+// begin sale event addition ms5984
+import java.lang.reflect.Modifier;
+// end sale event addition ms5984
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +19,9 @@ import org.bukkit.inventory.ItemStack;
 public class CustomItem implements ConfigurationSerializable {
 
 	private String material;
+	// begin sale event addition ms5984
+	private transient final ItemStack itemCopy;
+	// end sale event addition ms5984
 
 	private Map<String, Integer> enchantements;
 	private String displayname;
@@ -30,6 +36,10 @@ public class CustomItem implements ConfigurationSerializable {
 	private List<Flags> flags = new ArrayList<Flags>();
 
 	public CustomItem(ItemStack is, double price) {
+		// begin sale event addition ms5984
+		this.itemCopy = is.clone();
+		if (itemCopy.getAmount() != 1) itemCopy.setAmount(1);
+		// end sale event addition ms5984
 		this.price = price;
 		this.material = is.getType().name();
 		this.durability = is.getDurability();
@@ -47,6 +57,15 @@ public class CustomItem implements ConfigurationSerializable {
 			this.enchantements = is.getEnchantments().entrySet().stream().collect(Collectors.toMap(x -> x.getKey().getKey().getKey(), x -> x.getValue()));
 		}
 	}
+
+	// begin sale event addition ms5984
+	public ItemStack getItemCopy(int amount) {
+		if (amount < 1) throw new IllegalArgumentException();
+		final ItemStack itemStack = itemCopy.clone();
+		if (amount != 1) itemStack.setAmount(amount);
+		return itemStack;
+	}
+	// end sale event addition ms5984
 	
 	/**
 	 * Returns if this custom item has an item meta and enchantment on it
@@ -140,6 +159,11 @@ public class CustomItem implements ConfigurationSerializable {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for(Field field : this.getClass().getDeclaredFields()) {
 			try {
+				// begin sale event addition ms5984
+				if (Modifier.isTransient(field.getModifiers())) {
+					continue;
+				}
+				// end sale event addition ms5984
 				map.put(field.getName(), field.get(this));
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
