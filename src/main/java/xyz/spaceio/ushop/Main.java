@@ -385,8 +385,10 @@ public class Main extends JavaPlugin {
 		
 		if(this.cfg.getString("sell-prices") != null) {
 			customItems = gson.fromJson(cfg.getString("sell-prices"), new TypeToken<List<CustomItem>>(){}.getType());
+			return;
 		}
-		
+		// clear old values
+		if (customItems.size() > 0) customItems.clear();
 		// converting simple items to custom items
 		if(this.cfg.contains("sell-prices-simple")) {
 			for(String entry : this.cfg.getStringList("sell-prices-simple")) {
