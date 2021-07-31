@@ -72,8 +72,9 @@ public class CommandOnSellHandler {
                         String name = key.getDisplayname();
                         if (name == null) name = key.getMaterial().toLowerCase();
                         builder.add(itemsFormat
-                                .replace("%cost%", currencyInstance.format(itemTotal))
+                                .replace("%quantity%", String.valueOf(entry.getValue()))
                                 .replace("%name%", name)
+                                .replace("%cost%", currencyInstance.format(itemTotal))
                         );
                     }
                     cost += itemTotal;

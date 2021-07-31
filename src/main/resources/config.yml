@@ -18,5 +18,5 @@ on-sell:
   cost-locale:
     lang: "en"
     country: "US"
-  items-format: [ "%cost% of %name%", ", ", " and " ]
+  items-format: [ "%quantity% of %name% for %cost%", ", ", " and " ]
 # sell prices. I suggest to use /ushop setprice in game for adding items, or use /ushop convert in order to use your essentialsx prices!
