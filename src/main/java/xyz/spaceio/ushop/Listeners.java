@@ -85,6 +85,9 @@ public class Listeners implements Listener {
 					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
 					
 					HashMap<CustomItem, Integer> listOfItems = plugin.getSalableItems(e.getInventory().getContents());
+					// begin command on sell addition ms5984
+					new CommandOnSellHandler(p, listOfItems).processCommand();
+					// end command on sell addition ms5984
 					List<String> allLines = new ArrayList<>();
 					allLines.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("receipt.header")));
 					for (Entry<CustomItem, Integer> entry : listOfItems.entrySet()) {
