@@ -30,8 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xyz.spaceio.customitem.CustomItem;
 
 import java.text.NumberFormat;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CommandOnSellHandler {
@@ -50,7 +49,12 @@ public class CommandOnSellHandler {
         final boolean replacePlayerName = string.contains("%player%");
         final boolean replaceItems = string.contains("%items%");
         final boolean replaceCost = string.contains("%cost%");
-        final String costFormat = plugin.getConfig().getString("on-sell.cost-format");
+        final String lang = Optional.ofNullable(plugin.getConfig().getString("on-sell.cost-locale.lang"))
+                .filter(String::isEmpty)
+                .orElse("en");
+        final String country = Optional.ofNullable(plugin.getConfig().getString("on-sell.cost-locale.country"))
+                .filter(String::isEmpty)
+                .orElse("US");
         final List<String> formatList = plugin.getConfig().getStringList("on-sell.items-format");
         final String itemsFormat = formatList.get(0);
         final String itemsFormatSeparator = formatList.get(1);
@@ -58,16 +62,17 @@ public class CommandOnSellHandler {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             final ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
             double cost = 0;
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            final Locale costLocale = new Locale(lang, country);
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(costLocale);
             for (Map.Entry<CustomItem, Integer> entry : soldItems.entrySet()) {
-                if ((replaceItems || replaceCost) && costFormat != null) {
+                if (replaceItems || replaceCost) {
                     final CustomItem key = entry.getKey();
                     final double itemTotal = key.getPrice() * entry.getValue();
                     if (replaceItems && itemsFormat != null) {
                         String name = key.getDisplayname();
                         if (name == null) name = key.getMaterial().toLowerCase();
                         builder.add(itemsFormat
-                                .replace("%cost%", costFormat.replace("%amount%", currencyInstance.format(itemTotal)))
+                                .replace("%cost%", currencyInstance.format(itemTotal))
                                 .replace("%name%", name)
                         );
                     }
@@ -77,32 +82,32 @@ public class CommandOnSellHandler {
             final double finalCost = cost;
             final AtomicReference<String> finalCommand = new AtomicReference<>(string);
             final ImmutableList<String> items = builder.build();
-            if (replaceItems && !items.isEmpty()) {
-                final int size = items.size();
-                if (size == 1) {
-                    finalCommand.updateAndGet(s -> s.replace("%items%", items.get(0)));
-                } else if (size == 2) {
-                    finalCommand.updateAndGet(s -> s.replace(
-                            "%items%",
-                            items.get(0) + itemsFormatJoin + items.get(1)
-                    ));
-                } else {
-                    final StringBuilder sb = new StringBuilder(items.get(0));
-                    for (int i = 1; i < size - 1; ++i) {
-                        sb.append(itemsFormatSeparator);
-                        sb.append(items.get(i));
+            if (replaceItems) {
+                if (!items.isEmpty()) {
+                    final int size = items.size();
+                    if (size == 1) {
+                        finalCommand.updateAndGet(s -> s.replace("%items%", items.get(0)));
+                    } else if (size == 2) {
+                        finalCommand.updateAndGet(s -> s.replace(
+                                "%items%",
+                                items.get(0) + itemsFormatJoin + items.get(1)
+                        ));
+                    } else {
+                        final StringBuilder sb = new StringBuilder(items.get(0));
+                        for (int i = 1; i < size - 1; ++i) {
+                            sb.append(itemsFormatSeparator);
+                            sb.append(items.get(i));
+                        }
+                        sb.append(itemsFormatJoin);
+                        sb.append(items.get(size - 1));
+                        finalCommand.updateAndGet(s -> s.replace("%items%", sb.toString()));
                     }
-                    sb.append(itemsFormatJoin);
-                    sb.append(items.get(size - 1));
-                    finalCommand.updateAndGet(s -> s.replace("%items%", sb.toString()));
+                } else {
+                    finalCommand.updateAndGet(s -> s.replace(" %items%", ""));
                 }
             }
             if (replaceCost) {
-                if (costFormat != null) {
-                    finalCommand.updateAndGet(s -> s.replace("%cost%", costFormat.replace("%amount%", currencyInstance.format(finalCost))));
-                } else {
-                    finalCommand.updateAndGet(s -> s.replace("%cost%", "$" + currencyInstance.format(finalCost)));
-                }
+                finalCommand.updateAndGet(s -> s.replace("%cost%", currencyInstance.format(finalCost)));
             }
             Bukkit.getScheduler().runTask(plugin, () -> {
                 final String playerName = player.getName();

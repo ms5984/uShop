@@ -15,6 +15,8 @@ message-sold: "&aSold all items for &c%total%&a!"
 command: "sell"
 on-sell:
   run-command: "discord bcast #1234567890 %player% has just sold items %items% for a total sell cost of %cost%"
-  cost-format: "$%amount%"
+  cost-locale:
+    lang: "en"
+    country: "US"
   items-format: [ "%cost% of %name%", ", ", " and " ]
 # sell prices. I suggest to use /ushop setprice in game for adding items, or use /ushop convert in order to use your essentialsx prices!
